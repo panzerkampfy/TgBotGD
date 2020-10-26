@@ -147,6 +147,50 @@ public class fileBot extends TelegramLongPollingBot {
 
                         }
                     }
+
+                    //удаление написал через простые стринги, вроде проще, но выглядит невнятно
+                    //и мб медленне чем через библиотеку
+                    if(message_text.substring(0,7).equals("/delete")){
+                        message_text = message_text.substring(9);
+                        String[] usernames = message_text.split(" @");
+                        String text = null;
+                        try {
+                            text = new String(Files.readAllBytes(Paths.get(whitelistPath)));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        for (String username : usernames){
+                            Integer k = text.indexOf(username);
+                            System.out.println(k);
+                            System.out.println(text.charAt(116));
+                            text = text.substring(0, k-54) + text.substring(k+username.length()+3,text.length());
+                            System.out.println(text);
+                            try (FileWriter file = new FileWriter(whitelistPath)) {
+                                file.write(text);
+                                file.flush();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            sendMsg(chatId, "@" + username + " deleted from whitelist");
+                        }
+                    }
+                    if(message_text.substring(0,10).equals("/whitelist")){
+
+                        String text = null;
+                        try {
+                            text = new String(Files.readAllBytes(Paths.get(whitelistPath)));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        org.json.JSONObject obj = new org.json.JSONObject(text);
+                        org.json.JSONArray list = obj.getJSONArray("list");
+                        String reply = "Whitelist: ";
+                        for (int i=0; i<list.length(); i++){
+                            reply = reply + "@" + list.getJSONObject(i).getString("name") + " ";
+//
+                        }
+                        sendMsg(chatId, reply);
+                    }
                 }
             }
             //
